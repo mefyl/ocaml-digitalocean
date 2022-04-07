@@ -1,0 +1,8 @@
+(include_subdirs unqualified)
+
+(executable
+ (package do-cli)
+ (name main)
+ (public_name do)
+ (libraries acid cmdliner cohttp-lwt-unix do)
+ (root_module libs))
