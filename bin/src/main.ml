@@ -43,8 +43,8 @@ let error_to_string =
 
 let commands =
   let open Let.Syntax2 (Lwt_result) in
-  let command ~doc name term =
-    Cmd.v (Cmd.info ~doc name) Term.(term $ debug $ token)
+  let term f = Term.(f $ debug $ token) in
+  let command ~doc name term = Cmd.v (Cmd.info ~doc name) term
   and run_raw f debug token =
     let () = Logs.set_reporter @@ Logs_fmt.reporter () in
     let () = if debug then Logs.set_level ~all:true (Some Debug) in
@@ -73,14 +73,32 @@ let commands =
       run Do.account_schema f
     in
     command ~doc:"Provides information about your current account." "account"
-      Term.(const f)
+      (term Term.(const f))
+  and domains =
+    let list =
+      let f =
+        let f api = Do_client.Domains.list api |> Do.Sequence.to_list in
+        run (Schematic.Schemas.list_schema Do.domain_schema) f
+      in
+      term Term.(const f)
+    in
+    Cmdliner.Cmd.group
+      Cmd.(
+        info
+          ~doc:
+            "Domain resources are domain names that you have purchased from a \
+             domain name registrar that you are managing through the \
+             DigitalOcean DNS interface."
+          "domains")
+      ~default:list
+      [ command ~doc:"List all domains in your account" "list" list ]
   and invoices =
     let f max =
       let f api = Do_client.invoices ?max api |> Do.Sequence.to_list in
       run (Schematic.Schemas.list_schema Do.invoice_schema) f
     in
     command ~doc:"Retrieve a list of all invoices." "invoices"
-      Term.(const f $ max)
+      (term Term.(const f $ max))
   and invoice_pdf =
     let f id =
       let f api = Do_client.invoice_pdf api id
@@ -91,8 +109,8 @@ let commands =
       run_raw resp f
     in
     command ~doc:"Retrieve a PDF for an invoice." "invoice-pdf"
-      Term.(const f $ invoice_uuid)
+      (term Term.(const f $ invoice_uuid))
   and info = Cmd.(info ~doc:"Do business API." "do") in
-  Cmdliner.Cmd.group info [ account; invoices; invoice_pdf ]
+  Cmdliner.Cmd.group info [ account; domains; invoices; invoice_pdf ]
 
 let () = Stdlib.exit @@ Cmd.eval_result commands

@@ -29,7 +29,7 @@ module Make (Client : Cohttp_lwt.S.Client) = struct
 
   type t = { http : (module HTTP); token : string }
 
-  type links = { pages : pages }
+  type links = { pages : pages option }
 
   and pages = {
     first : Uri.t option;
@@ -57,8 +57,9 @@ module Make (Client : Cohttp_lwt.S.Client) = struct
                 )
           in
           let+ page = Http.get schema (Uri.with_uri ?query uri) in
-          let items, { pages = { next; _ }; _ } = split page in
-          Sequence.Step.Yields (items, (next, max))
+          let items, { pages; _ } = split page in
+          Sequence.Step.Yields
+            (items, (Option.bind ~f:(fun { next; _ } -> next) pages, max))
     in
     Sequence.unfold ~init:(Some uri, max) ~f
 
@@ -88,6 +89,16 @@ module Make (Client : Cohttp_lwt.S.Client) = struct
 
   let invoice_pdf { http = (module Http); _ } uuid =
     Http.get Http.stream @@ uri "customers/my/invoices/%s/pdf" uuid
+
+  type domains_response = { domains : domain list; links : links }
+  [@@deriving schema]
+
+  module Domains = struct
+    let list ?max t =
+      paginate ?max t domains_response_schema (fun { domains; links } ->
+          (domains, links))
+      @@ uri "domains"
+  end
 end
 
 let pp_do_error = Fmt.using (fun { message; _ } -> message) Fmt.string

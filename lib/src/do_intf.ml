@@ -8,7 +8,7 @@ type account = {
   status_message : string;
 }
 
-and status = Active | Warning | Locked [@@deriving schema]
+and domain = { name : string; ttl : Timmy.Span.t; zone_file : string }
 
 and invoice = {
   uuid : string; [@schematic.as "invoice_uuid"]
@@ -16,6 +16,8 @@ and invoice = {
   invoice_period : int * Timmy.Month.t;
       [@schematic.schema fun _ -> Schemas.period]
 }
+
+and status = Active | Warning | Locked [@@deriving schema]
 
 module Sequence = Acid.Sequence.Make2 (Acid.Lwt_result)
 

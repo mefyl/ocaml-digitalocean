@@ -24,6 +24,15 @@ module Make (Client : Cohttp_lwt.S.Client) : sig
     ( string Lwt_stream.t,
       [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
     Lwt_result.t
+
+  module Domains : sig
+    val list :
+      ?max:int ->
+      t ->
+      ( domain,
+        [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
+      Sequence.t
+  end
 end
 
 val pp_error : error Fmt.t
