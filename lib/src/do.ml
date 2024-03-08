@@ -1,4 +1,4 @@
-open Acid.Versions.V0_7_2
+open Acid.Versions.V0_11_11
 include Do_intf
 
 let uri ?query fmt =

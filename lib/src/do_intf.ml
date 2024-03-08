@@ -12,8 +12,9 @@ and status = Active | Warning | Locked [@@deriving schema]
 
 and invoice = {
   uuid : string; [@schematic.as "invoice_uuid"]
-  amount : float; [@schematic.schema Schemas.amount]
-  invoice_period : int * Timmy.Month.t; [@schematic.schema Schemas.period]
+  amount : float; [@schematic.schema fun _ -> Schemas.amount]
+  invoice_period : int * Timmy.Month.t;
+      [@schematic.schema fun _ -> Schemas.period]
 }
 
 module Sequence = Acid.Sequence.Make2 (Acid.Lwt_result)

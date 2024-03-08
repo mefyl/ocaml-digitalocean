@@ -4,5 +4,12 @@
  (package do-cli)
  (name main)
  (public_name do)
- (libraries acid cmdliner cohttp-lwt-unix do)
+ (libraries
+  acid
+  cmdliner
+  cohttp-lwt-unix
+  do
+  timmy-lwt.unix
+  timmy-unix.clock
+  tls-lwt)
  (root_module libs))

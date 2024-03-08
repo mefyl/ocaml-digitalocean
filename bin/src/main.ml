@@ -1,4 +1,4 @@
-open Acid.Versions.V0_7_2
+open Acid.Versions.V0_11_11
 module Do_client = Do.Make (Cohttp_lwt_unix.Client)
 module Arg = Cmdliner.Arg
 module Cmd = Cmdliner.Cmd
@@ -50,7 +50,7 @@ let commands =
     let () = if debug then Logs.set_level ~all:true (Some Debug) in
     let api = Do_client.make ~token in
     let lwt = f api in
-    Lwt_result.map_err error_to_string lwt |> Lwt_main.run
+    Lwt_result.map_error error_to_string lwt |> Lwt_main.run
   in
   let run schema f debug token =
     let f api =
@@ -85,7 +85,7 @@ let commands =
     let f id =
       let f api = Do_client.invoice_pdf api id
       and resp stream =
-        Lwt_stream.iter (Caml.output_string Caml.stdout) stream
+        Lwt_stream.iter (Stdlib.output_string Stdlib.stdout) stream
         |> Lwt.map ~f:Result.return
       in
       run_raw resp f
@@ -95,4 +95,4 @@ let commands =
   and info = Cmd.(info ~doc:"Do business API." "do") in
   Cmdliner.Cmd.group info [ account; invoices; invoice_pdf ]
 
-let () = Caml.exit @@ Cmd.eval_result commands
+let () = Stdlib.exit @@ Cmd.eval_result commands

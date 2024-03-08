@@ -9,9 +9,8 @@ homepage: "https://github.com/mefyl/ocaml-do"
 bug-reports: "https://github.com/mefyl/ocaml-do/-/issues"
 depends: [
   "dune" {>= "3.0"}
-  "acid" {>= "0.7.0" & < "0.8.0"}
   "cmdliner" {>= "1.1.0" & < "1.2.0"}
-  "cohttp-lwt-unix" {>= "5.0.0" & < "5.1.0"}
+  "cohttp-lwt-unix"
   "do"
   "tls"
   "odoc" {with-doc}

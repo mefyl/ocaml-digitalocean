@@ -9,11 +9,12 @@ homepage: "https://github.com/mefyl/ocaml-do"
 bug-reports: "https://github.com/mefyl/ocaml-do/-/issues"
 depends: [
   "dune" {>= "3.0"}
-  "cohttp-lwt" {>= "5.0.0" & < "5.1.0"}
+  "acid" {>= "0.11.0" & < "0.12.0"}
+  "cohttp-lwt"
   "fmt"
-  "schematic" {>= "0.13.0" & < "0.14.0"}
-  "schematic-http" {>= "0.13.0" & < "0.14.0"}
-  "timmy" {>= "0.12.0" & < "0.13.0"}
+  "schematic" {>= "0.19.0" & < "0.20.0"}
+  "schematic-http" {>= "0.19.0" & < "0.20.0"}
+  "timmy" {>= "1.0.0" & < "2.0.0"}
   "odoc" {with-doc}
 ]
 build: [
