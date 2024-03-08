@@ -90,14 +90,41 @@ module Make (Client : Cohttp_lwt.S.Client) = struct
   let invoice_pdf { http = (module Http); _ } uuid =
     Http.get Http.stream @@ uri "customers/my/invoices/%s/pdf" uuid
 
-  type domains_response = { domains : domain list; links : links }
-  [@@deriving schema]
-
   module Domains = struct
+    type domains_response = { domains : domain list; links : links }
+    [@@deriving schema]
+
     let list ?max t =
       paginate ?max t domains_response_schema (fun { domains; links } ->
           (domains, links))
       @@ uri "domains"
+  end
+
+  module Domain_records = struct
+    type domain_record_response = { domain_record : domain_record }
+
+    and domain_records_response = {
+      domain_records : domain_record list;
+      links : links;
+    }
+    [@@deriving schema]
+
+    let create { http = (module Http); _ } ~domain record =
+      let+ { domain_record } =
+        Http.post
+          ~body:(domain_record_creation_schema, record)
+          domain_record_response_schema
+        @@ uri "domains/%s/records" domain
+      in
+      domain_record
+
+    let delete { http = (module Http); _ } ~domain id =
+      Http.delete Http.empty @@ uri "domains/%s/records/%d" domain id
+
+    let list ?max t ~domain =
+      paginate ?max t domain_records_response_schema
+        (fun { domain_records; links } -> (domain_records, links))
+      @@ uri "domains/%s/records" domain
   end
 end
 

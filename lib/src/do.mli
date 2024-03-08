@@ -33,6 +33,32 @@ module Make (Client : Cohttp_lwt.S.Client) : sig
         [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
       Sequence.t
   end
+
+  module Domain_records : sig
+    val create :
+      t ->
+      domain:string ->
+      domain_record_creation ->
+      ( domain_record,
+        [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
+      Lwt_result.t
+
+    val delete :
+      t ->
+      domain:string ->
+      int ->
+      ( unit,
+        [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
+      Lwt_result.t
+
+    val list :
+      ?max:int ->
+      t ->
+      domain:string ->
+      ( domain_record,
+        [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
+      Sequence.t
+  end
 end
 
 val pp_error : error Fmt.t

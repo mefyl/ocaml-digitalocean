@@ -7,6 +7,10 @@ module Term = Cmdliner.Term
 (* Arguments *)
 
 let debug = Arg.(value @@ flag @@ info ~doc:"Show debug logs" [ "d"; "debug" ])
+let domain = Arg.(info ~doc:"The name of the domain itself" [])
+
+let domain_record_id =
+  Arg.(info ~doc:"The unique identifier of the domain record." [])
 
 let invoice_uuid =
   Arg.(
@@ -92,6 +96,104 @@ let commands =
           "domains")
       ~default:list
       [ command ~doc:"List all domains in your account" "list" list ]
+  and domain_records =
+    let opt_name =
+      Arg.(
+        opt (some string) None
+        @@ info
+             ~doc:
+               "The host name, alias, or service being defined by the record."
+             [ "name" ])
+    and opt_type =
+      Arg.(
+        opt
+          (enum
+             Do.
+               [
+                 ("A", A);
+                 ("AAAA", Aaaa);
+                 ("CAA", Caa);
+                 ("CNAME", Cname);
+                 ("MX", Mx);
+                 ("NS", Ns);
+                 ("SOA", Soa);
+                 ("SRV", Srv);
+                 ("TXT", Txt);
+               ])
+          Do.A
+        @@ info
+             ~doc:
+               "The host name, alias, or service being defined by the record."
+             [ "type" ])
+    and opt_data =
+      Arg.(
+        opt (some string) None
+        @@ info
+             ~doc:
+               "Variable data depending on record type. For example, the \
+                \"data\" value for an A record would be the IPv4 address to \
+                which the domain will be mapped. For a CAA record, it would \
+                contain the domain name of the CA being granted permission to \
+                issue certificates."
+             [ "data" ])
+    and opt_domain =
+      Arg.(info ~doc:"The name of the domain itself" [ "domain" ])
+    in
+    let create =
+      let f domain name type' data =
+        let f api =
+          Do_client.Domain_records.create api ~domain
+            {
+              name;
+              type';
+              data;
+              priority = None;
+              port = None;
+              ttl = None;
+              weight = None;
+              flags = None;
+              tag = None;
+            }
+        in
+        run Do.domain_record_schema f
+      in
+      term
+        Term.(
+          const f
+          $ Arg.(required @@ opt (some string) None opt_domain)
+          $ Arg.required opt_name $ Arg.value opt_type $ Arg.required opt_data)
+    and delete =
+      let f domain id =
+        let f api = Do_client.Domain_records.delete api ~domain id in
+        run Schematic.Schemas.unit_schema f
+      in
+      term
+        Term.(
+          const f
+          $ Arg.(required @@ pos 0 (some string) None domain)
+          $ Arg.(required @@ pos 1 (some int) None domain_record_id))
+    and list =
+      let f domain =
+        let f api =
+          Do_client.Domain_records.list api ~domain |> Do.Sequence.to_list
+        in
+        run (Schematic.Schemas.list_schema Do.domain_record_schema) f
+      in
+      term Term.(const f $ Arg.(required @@ pos 0 (some string) None domain))
+    in
+    Cmdliner.Cmd.group
+      Cmd.(
+        info
+          ~doc:
+            "Domain record resources are used to set or retrieve information \
+             about the individual DNS records configured for a domain."
+          "domain-records")
+      ~default:list
+      [
+        command ~doc:"Create a new record in a domain." "create" create;
+        command ~doc:"Delete a record for a domain." "delete" delete;
+        command ~doc:"List all records configured for a domain." "list" list;
+      ]
   and invoices =
     let f max =
       let f api = Do_client.invoices ?max api |> Do.Sequence.to_list in
@@ -111,6 +213,7 @@ let commands =
     command ~doc:"Retrieve a PDF for an invoice." "invoice-pdf"
       (term Term.(const f $ invoice_uuid))
   and info = Cmd.(info ~doc:"Do business API." "do") in
-  Cmdliner.Cmd.group info [ account; domains; invoices; invoice_pdf ]
+  Cmdliner.Cmd.group info
+    [ account; domains; domain_records; invoices; invoice_pdf ]
 
 let () = Stdlib.exit @@ Cmd.eval_result commands
