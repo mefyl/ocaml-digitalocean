@@ -53,7 +53,21 @@ and invoice = {
       [@schematic.schema fun _ -> Schemas.period]
 }
 
+and region = string
 and status = Active | Warning | Locked [@@deriving schema]
+
+and size = {
+  slug : string;
+  memory : int;
+  vcpus : int;
+  disk : int;
+  transfer : int;
+  price_monthly : int;
+  price_hourly : float;
+  regions : region list;
+  available : bool;
+  description : string;
+}
 
 module Sequence = Acid.Sequence.Make2 (Acid.Lwt_result)
 

@@ -126,6 +126,16 @@ module Make (Client : Cohttp_lwt.S.Client) = struct
         (fun { domain_records; links } -> (domain_records, links))
       @@ uri "domains/%s/records" domain
   end
+
+  module Sizes = struct
+    type sizes_response = { links : links; sizes : size list }
+    [@@deriving schema]
+
+    let list ?max t =
+      paginate ?max t sizes_response_schema (fun { links; sizes } ->
+          (sizes, links))
+      @@ uri "sizes"
+  end
 end
 
 let pp_do_error = Fmt.using (fun { message; _ } -> message) Fmt.string

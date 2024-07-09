@@ -212,8 +212,15 @@ let commands =
     in
     command ~doc:"Retrieve a PDF for an invoice." "invoice-pdf"
       (term Term.(const f $ invoice_uuid))
-  and info = Cmd.(info ~doc:"Do business API." "do") in
+  and info = Cmd.(info ~doc:"Do business API." "do")
+  and sizes =
+    let f max =
+      let f api = Do_client.Sizes.list ?max api |> Do.Sequence.to_list in
+      run (Schematic.Schemas.list_schema Do.size_schema) f
+    in
+    command ~doc:"All Droplet sizes." "sizes" (term Term.(const f $ max))
+  in
   Cmdliner.Cmd.group info
-    [ account; domains; domain_records; invoices; invoice_pdf ]
+    [ account; domains; domain_records; invoices; invoice_pdf; sizes ]
 
 let () = Stdlib.exit @@ Cmd.eval_result commands

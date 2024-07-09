@@ -59,6 +59,15 @@ module Make (Client : Cohttp_lwt.S.Client) : sig
         [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
       Sequence.t
   end
+
+  module Sizes : sig
+    val list :
+      ?max:int ->
+      t ->
+      ( size,
+        [> status_error Schematic_http.Error.reason ] Schematic_http.Error.t )
+      Sequence.t
+  end
 end
 
 val pp_error : error Fmt.t
